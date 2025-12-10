@@ -1,6 +1,6 @@
 // === Firebase Imports ===
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.4.0/firebase-app.js";
-import { getDatabase, ref, set, get, onValue } from "https://www.gstatic.com/firebasejs/10.4.0/firebase-database.js";
+import { getDatabase, ref, set, update, onValue } from "https://www.gstatic.com/firebasejs/10.4.0/firebase-database.js";
 import { firebaseConfig } from "./firebase-config.js";
 
 // === Firebase Init ===
@@ -20,11 +20,12 @@ const suitButtons = document.querySelectorAll(".suit");
 const suitStatus = document.getElementById("suitStatus");
 
 // === Variables ===
-let playerName, room, mySymbol;
+let playerName, room, mySymbol = "";
 let board = Array(9).fill("");
 let currentTurn = "X";
 let gameOver = false;
 let scores = { X: 0, O: 0 };
+let listenersActive = false;
 
 // === Gabung ke Game ===
 joinBtn.onclick = async () => {
@@ -32,103 +33,115 @@ joinBtn.onclick = async () => {
   room = document.getElementById("roomName").value.trim();
 
   if (!playerName || !room) return alert("Isi nama dan room dulu!");
-
-  // Reset data room di Firebase biar gak bentrok dari game lama
-  set(ref(db, `games/${room}/suit`), {});
-  set(ref(db, `games/${room}/board`), Array(9).fill(""));
-  set(ref(db, `games/${room}/turn`), "X");
-
+  
   // Update URL biar bisa dibagikan
   const newUrl = `${window.location.origin}${window.location.pathname}?room=${encodeURIComponent(room)}&name=${encodeURIComponent(playerName)}`;
   window.history.pushState({}, "", newUrl);
 
+  // Buat node room jika belum ada
+  await update(ref(db, `games/${room}`), {
+    board: Array(9).fill(""),
+    turn: "X",
+    scores: { X: 0, O: 0 }
+  });
+
   // Tampilkan halaman suit
   lobby.style.display = "none";
   suitSection.style.display = "block";
+
+  // Aktifkan listener setelah room diset
+  if (!listenersActive) {
+    activateListeners();
+    listenersActive = true;
+  }
 };
 
-// === SUIT Logic ===
-suitButtons.forEach(btn => {
-  btn.onclick = () => {
-    const choice = btn.dataset.choice;
-    set(ref(db, `games/${room}/suit/${playerName}`), choice);
-    suitStatus.textContent = `${playerName} sudah memilih, menunggu lawan...`;
-  };
-});
+// === Fungsi Listener untuk Suit & Game ===
+function activateListeners() {
+  // SUIT Buttons
+  suitButtons.forEach(btn => {
+    btn.onclick = () => {
+      const choice = btn.dataset.choice;
+      set(ref(db, `games/${room}/suit/${playerName}`), choice);
+      suitStatus.textContent = `${playerName} sudah memilih (${choice}), menunggu lawan...`;
+    };
+  });
 
-// === Pantau dan Proses Hasil SUIT ===
-onValue(ref(db, `games/${room}/suit`), (snapshot) => {
-  const data = snapshot.val();
+  // SUIT Listener
+  onValue(ref(db, `games/${room}/suit`), (snapshot) => {
+    const data = snapshot.val();
+    console.log("🔥 SUIT DATA UPDATE:", data);
 
-  // Belum ada siapa pun
-  if (!data || Object.keys(data).length === 0) {
-    suitStatus.textContent = "Menunggu lawan bergabung ke room...";
-    return;
-  }
-
-  // Hanya 1 pemain yang sudah memilih
-  if (Object.keys(data).length === 1) {
-    const [p] = Object.keys(data);
-    if (p === playerName)
-      suitStatus.textContent = "Menunggu lawan memilih...";
-    else
-      suitStatus.textContent = "Lawan sudah memilih, giliran kamu!";
-    return;
-  }
-
-  // Dua pemain sudah memilih — tentukan pemenang suit
-  if (Object.keys(data).length === 2) {
-    const [p1, p2] = Object.keys(data);
-    const c1 = data[p1], c2 = data[p2];
-    let winner = null;
-
-    if (c1 === c2) {
-      suitStatus.textContent = "Seri! Suit ulang...";
-      set(ref(db, `games/${room}/suit`), {}); // reset
+    if (!data || Object.keys(data).length === 0) {
+      suitStatus.textContent = "Menunggu lawan bergabung ke room...";
       return;
     }
 
-    // Tentukan pemenang suit
-    if (
-      (c1 === "batu" && c2 === "gunting") ||
-      (c1 === "gunting" && c2 === "kertas") ||
-      (c1 === "kertas" && c2 === "batu")
-    ) winner = p1;
-    else winner = p2;
+    if (Object.keys(data).length === 1) {
+      const [p] = Object.keys(data);
+      if (p === playerName)
+        suitStatus.textContent = "Menunggu lawan memilih...";
+      else
+        suitStatus.textContent = "Lawan sudah memilih, giliran kamu!";
+      return;
+    }
 
-    // Tentukan simbol pemain
-    mySymbol = (playerName === winner) ? "X" : "O";
+    if (Object.keys(data).length === 2) {
+      const [p1, p2] = Object.keys(data);
+      const c1 = data[p1], c2 = data[p2];
+      let winner = null;
 
-    // Set giliran pertama di Firebase
-    set(ref(db, `games/${room}/turn`), "X");
+      if (c1 === c2) {
+        suitStatus.textContent = "Seri! Suit ulang...";
+        set(ref(db, `games/${room}/suit`), {}); // reset
+        return;
+      }
 
-    suitStatus.textContent = `${winner} menang suit dan main duluan!`;
+      if (
+        (c1 === "batu" && c2 === "gunting") ||
+        (c1 === "gunting" && c2 === "kertas") ||
+        (c1 === "kertas" && c2 === "batu")
+      ) winner = p1;
+      else winner = p2;
 
-    // Tampilkan papan game setelah 1.5 detik
-    setTimeout(() => {
-      suitSection.style.display = "none";
-      game.style.display = "block";
-    }, 1500);
-  }
-});
+      // Tentukan simbol
+      mySymbol = (playerName === winner) ? "X" : "O";
 
-// === Game Logic ===
-onValue(ref(db, `games/${room}/board`), (snapshot) => {
-  const data = snapshot.val();
-  if (data) board = data;
-  renderBoard();
-});
+      // Set turn pertama hanya sekali (oleh pemenang)
+      if (playerName === winner) {
+        update(ref(db, `games/${room}`), { turn: "X" });
+      }
 
-onValue(ref(db, `games/${room}/turn`), (snapshot) => {
-  currentTurn = snapshot.val() || "X";
-  turnInfo.textContent = `Giliran: ${currentTurn}`;
-});
+      suitStatus.textContent = `${winner} menang suit dan main duluan!`;
 
-onValue(ref(db, `games/${room}/scores`), (snapshot) => {
-  const data = snapshot.val();
-  if (data) scores = data;
-  updateScore();
-});
+      // Delay biar update Firebase sempat sync ke semua pemain
+      setTimeout(() => {
+        suitSection.style.display = "none";
+        game.style.display = "block";
+      }, 1500);
+    }
+  });
+
+  // Game Board Listener
+  onValue(ref(db, `games/${room}/board`), (snapshot) => {
+    const data = snapshot.val();
+    if (data) board = data;
+    renderBoard();
+  });
+
+  // Turn Listener
+  onValue(ref(db, `games/${room}/turn`), (snapshot) => {
+    currentTurn = snapshot.val() || "X";
+    turnInfo.textContent = `Giliran: ${currentTurn}`;
+  });
+
+  // Score Listener
+  onValue(ref(db, `games/${room}/scores`), (snapshot) => {
+    const data = snapshot.val();
+    if (data) scores = data;
+    updateScore();
+  });
+}
 
 // === Render Board ===
 function renderBoard() {
@@ -148,7 +161,7 @@ function makeMove(i) {
   board[i] = mySymbol;
   set(ref(db, `games/${room}/board`), board);
   checkWinner();
-  set(ref(db, `games/${room}/turn`), mySymbol === "X" ? "O" : "X");
+  update(ref(db, `games/${room}`), { turn: mySymbol === "X" ? "O" : "X" });
 }
 
 // === Check Winner ===
@@ -163,7 +176,7 @@ function checkWinner() {
       gameOver = true;
       alert(`Pemain ${board[a]} menang!`);
       scores[board[a]] += 1;
-      set(ref(db, `games/${room}/scores`), scores);
+      update(ref(db, `games/${room}`), { scores });
       return;
     }
   }

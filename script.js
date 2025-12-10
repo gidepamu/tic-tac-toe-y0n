@@ -18,6 +18,9 @@ const resetBtn = document.getElementById("resetBtn");
 const joinBtn = document.getElementById("joinBtn");
 const suitButtons = document.querySelectorAll(".suit");
 const suitStatus = document.getElementById("suitStatus");
+const popup = document.getElementById("popupWinner");
+const popupText = document.getElementById("popupText");
+const popupBtn = document.getElementById("popupBtn");
 
 // === Variables ===
 let playerName, room, mySymbol = "";
@@ -33,7 +36,7 @@ joinBtn.onclick = async () => {
   room = document.getElementById("roomName").value.trim();
 
   if (!playerName || !room) return alert("Isi nama dan room dulu!");
-  
+
   // Update URL biar bisa dibagikan
   const newUrl = `${window.location.origin}${window.location.pathname}?room=${encodeURIComponent(room)}&name=${encodeURIComponent(playerName)}`;
   window.history.pushState({}, "", newUrl);
@@ -174,15 +177,16 @@ function checkWinner() {
   for (const [a,b,c] of winCombos) {
     if (board[a] && board[a] === board[b] && board[a] === board[c]) {
       gameOver = true;
-      alert(`Pemain ${board[a]} menang!`);
-      scores[board[a]] += 1;
+      const winnerSymbol = board[a];
+      scores[winnerSymbol] += 1;
       update(ref(db, `games/${room}`), { scores });
+      showPopup(`Pemain ${winnerSymbol} menang! 🏆`);
       return;
     }
   }
   if (!board.includes("")) {
     gameOver = true;
-    alert("Seri!");
+    showPopup("Seri! 🤝");
   }
 }
 
@@ -191,7 +195,19 @@ function updateScore() {
   scoreInfo.textContent = `Skor ❌: ${scores["X"] || 0} | 🔵: ${scores["O"] || 0}`;
 }
 
-// === Reset Game ===
+// === POPUP WINNER ===
+function showPopup(text) {
+  popupText.textContent = text;
+  popup.style.display = "flex";
+}
+
+popupBtn.onclick = () => {
+  popup.style.display = "none";
+  set(ref(db, `games/${room}/board`), Array(9).fill(""));
+  gameOver = false;
+};
+
+// === Reset Game (Manual Button) ===
 resetBtn.onclick = () => {
   set(ref(db, `games/${room}/board`), Array(9).fill(""));
   gameOver = false;

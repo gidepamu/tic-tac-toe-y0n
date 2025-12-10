@@ -1,12 +1,110 @@
+/* === GENERAL STYLING === */
 body {
-  font-family: 'Segoe UI', sans-serif;
-  background: #e3e6ec;
+  font-family: 'Poppins', sans-serif;
+  background: linear-gradient(135deg, #0a1f44, #1b3358);
+  color: #fff;
   text-align: center;
-  margin-top: 50px;
+  margin: 0;
+  padding: 0;
+  height: 100vh;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-start;
+  align-items: center;
 }
 
 h1 {
-  font-weight: 700;
+  margin-top: 40px;
+  font-size: 2.2rem;
+  letter-spacing: 1px;
+  text-shadow: 0 2px 5px rgba(0,0,0,0.5);
+}
+
+/* === LOBBY === */
+#lobby {
+  background: rgba(255, 255, 255, 0.1);
+  padding: 30px 40px;
+  border-radius: 20px;
+  box-shadow: 0 8px 20px rgba(0,0,0,0.3);
+  margin-top: 60px;
+  transition: 0.3s;
+}
+
+#lobby input {
+  width: 230px;
+  padding: 12px 15px;
+  margin: 8px;
+  border: none;
+  border-radius: 10px;
+  outline: none;
+  font-size: 1rem;
+}
+
+#lobby button {
+  background: #0078ff;
+  border: none;
+  padding: 12px 25px;
+  color: white;
+  border-radius: 12px;
+  cursor: pointer;
+  font-size: 1rem;
+  transition: 0.2s;
+}
+
+#lobby button:hover {
+  background: #005ecc;
+  transform: translateY(-2px);
+}
+
+/* === SUIT === */
+#suitSection {
+  margin-top: 50px;
+  background: rgba(255, 255, 255, 0.1);
+  padding: 25px 30px;
+  border-radius: 20px;
+  box-shadow: 0 8px 20px rgba(0,0,0,0.3);
+  width: 300px;
+  animation: fadeIn 0.5s ease-in-out;
+}
+
+.suit {
+  background: #ffffff22;
+  border: 2px solid #0078ff;
+  border-radius: 15px;
+  font-size: 2rem;
+  padding: 12px 20px;
+  margin: 10px;
+  color: white;
+  cursor: pointer;
+  transition: 0.2s;
+}
+
+.suit:hover {
+  background: #0078ff;
+  transform: scale(1.1);
+}
+
+#suitStatus {
+  margin-top: 15px;
+  font-style: italic;
+  font-size: 1rem;
+  color: #c9d7f2;
+}
+
+/* === GAME BOARD === */
+#game {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  margin-top: 40px;
+  animation: fadeIn 0.6s ease-in-out;
+}
+
+#info {
+  margin-bottom: 10px;
+  background: rgba(255,255,255,0.1);
+  padding: 10px 20px;
+  border-radius: 12px;
 }
 
 #board {
@@ -21,17 +119,20 @@ h1 {
   width: 100px;
   height: 100px;
   background: white;
-  border-radius: 12px;
-  border: 2px solid #333;
+  border-radius: 15px;
+  border: 3px solid #0078ff;
   font-size: 2.5em;
+  color: #0a1f44;
   cursor: pointer;
   display: flex;
   align-items: center;
   justify-content: center;
+  transition: 0.2s;
 }
 
 .cell:hover {
   background: #dfe8ff;
+  transform: scale(1.05);
 }
 
 button {
@@ -39,15 +140,18 @@ button {
   border: none;
   padding: 10px 20px;
   color: white;
-  border-radius: 8px;
+  border-radius: 10px;
   cursor: pointer;
+  transition: 0.2s;
 }
 
 button:hover {
   background: #005ecc;
+  transform: translateY(-2px);
 }
 
-#turnInfo {
-  font-size: 1.2em;
-  margin-bottom: 10px;
+/* === ANIMATIONS === */
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(10px); }
+  to { opacity: 1; transform: translateY(0); }
 }

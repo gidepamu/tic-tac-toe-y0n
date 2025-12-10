@@ -7,11 +7,31 @@
   <link rel="stylesheet" href="style.css" />
 </head>
 <body>
-  <h1>Tic Tac Toe Online <span id="playerSymbol"></span></h1>
+  <h1>Tic Tac Toe Online</h1>
 
-  <div id="game">
+  <!-- LOBBY -->
+  <div id="lobby">
+    <input type="text" id="playerName" placeholder="Masukkan nama kamu" />
+    <input type="text" id="roomName" placeholder="Masukkan nama room" />
+    <button id="joinBtn">Gabung Game</button>
+  </div>
+
+  <!-- SUIT -->
+  <div id="suitSection" style="display:none;">
+    <h2>Suit untuk menentukan giliran pertama!</h2>
+    <p>Pilih: <button class="suit" data-choice="batu">🪨</button>
+    <button class="suit" data-choice="gunting">✂️</button>
+    <button class="suit" data-choice="kertas">📄</button></p>
+    <p id="suitStatus"></p>
+  </div>
+
+  <!-- GAME -->
+  <div id="game" style="display:none;">
+    <div id="info">
+      <h3 id="turnInfo"></h3>
+      <p id="scoreInfo"></p>
+    </div>
     <div id="board"></div>
-    <p id="turnInfo"></p>
     <button id="resetBtn">Reset Game</button>
   </div>
 

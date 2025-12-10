@@ -1,7 +1,7 @@
 export const firebaseConfig = {
   apiKey: "AIzaSyA8KTaj-uNfGK6yFupssqGleAQFSu7zus4",
   authDomain: "tes-tictacto.firebaseapp.com",
-  databaseURL: "https://tes-tictacto-default-rtdb.firebaseio.com", // <— ini WAJIB ada
+  databaseURL: "https://tes-tictacto-default-rtdb.asia-southeast1.firebasedatabase.app", // <— ini WAJIB ada
   projectId: "tes-tictacto",
   storageBucket: "tes-tictacto.firebasestorage.app",
   messagingSenderId: "111454134386",

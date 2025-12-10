@@ -42,6 +42,14 @@ suitButtons.forEach(btn => {
   };
 });
 
+// Pantau apakah lawan sudah bergabung
+onValue(ref(db, `games/${room}/suit`), (snapshot) => {
+  const data = snapshot.val();
+  if (!data || Object.keys(data).length === 0) {
+    suitStatus.textContent = "Menunggu lawan bergabung ke room...";
+  }
+});
+
 // Cek hasil suit
 onValue(ref(db, `games/${room}/suit`), (snapshot) => {
   const data = snapshot.val();
